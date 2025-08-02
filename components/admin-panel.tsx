@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Dialog,
@@ -30,6 +29,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { UserPlus, Edit, Trash2, Phone, MapPin, Settings, Download, Upload, RefreshCw, Eye } from "lucide-react"
 import { toast } from "sonner"
+import jsPDF from "jspdf"
+import "jspdf-autotable"
 
 interface TPSData {
   id: number
@@ -61,6 +62,21 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
     location: "",
   })
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "Aktif"
+      case "processing":
+        return "Proses"
+      case "pending":
+        return "Menunggu"
+      case "bermasalah":
+        return "Bermasalah"
+      default:
+        return "Unknown"
+    }
+  }
+
   const handleAddSupervisor = () => {
     console.log("Adding supervisor:", newSupervisor)
     toast.success("Penanggung jawab berhasil ditambahkan")
@@ -91,29 +107,48 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
     toast.success("Data TPS berhasil direset")
   }
 
-  const handleExportData = () => {
-    console.log("Exporting data...")
-    toast.success("Data berhasil diekspor")
+  const handleExportToPdf = () => {
+    const doc = new jsPDF()
+
+    const head = [["TPS", "Penanggung Jawab", "No. HP", "Lokasi", "Status"]]
+    const body: string[][] = []
+
+    tpsData.slice(0, 15).forEach((tps) => {
+      const tpsDataItem = [tps.name, tps.supervisor, tps.phone, tps.location, getStatusBadge(tps.status)]
+      body.push(tpsDataItem)
+    })
+
+    doc.text("Data Penanggung Jawab TPS", 14, 15)
+    // Using the recommended object-based syntax for autoTable
+    doc.autoTable({
+      startY: 20,
+      head: head,
+      body: body,
+      theme: "grid", // Optional: 'striped', 'grid', 'plain'
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [200, 200, 200], // Light gray header
+        textColor: [0, 0, 0],
+        fontStyle: "bold",
+      },
+      columnStyles: {
+        0: { cellWidth: 30 }, // TPS
+        1: { cellWidth: 40 }, // Penanggung Jawab
+        2: { cellWidth: 35 }, // No. HP
+        3: { cellWidth: 40 }, // Lokasi
+        4: { cellWidth: 25 }, // Status
+      },
+    })
+    doc.save(`data_penanggung_jawab_tps_${new Date().toISOString().slice(0, 10)}.pdf`)
+    toast.success("Data berhasil diekspor sebagai PDF")
   }
 
   const handleImportData = () => {
     console.log("Importing data...")
     toast.success("Data berhasil diimpor")
-  }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <Badge className="bg-green-100 text-green-800">Aktif</Badge>
-      case "processing":
-        return <Badge className="bg-blue-100 text-blue-800">Proses</Badge>
-      case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-800">Menunggu</Badge>
-      case "error":
-        return <Badge variant="destructive">Error</Badge>
-      default:
-        return <Badge variant="secondary">Unknown</Badge>
-    }
   }
 
   return (
@@ -203,9 +238,9 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
               </DialogContent>
             </Dialog>
 
-            <Button variant="outline" onClick={handleExportData} className="flex items-center gap-2 bg-transparent">
+            <Button variant="outline" onClick={handleExportToPdf} className="flex items-center gap-2 bg-transparent">
               <Download className="h-4 w-4" />
-              Export Data
+              Export Data (PDF)
             </Button>
 
             <Button variant="outline" onClick={handleImportData} className="flex items-center gap-2 bg-transparent">

@@ -51,8 +51,8 @@ export function TPSTable({ data, candidates }: TPSTableProps) {
         return <Badge className="bg-blue-100 text-blue-800">Proses</Badge>
       case "pending":
         return <Badge className="bg-yellow-100 text-yellow-800">Menunggu</Badge>
-      case "error":
-        return <Badge variant="destructive">Error</Badge>
+      case "bermasalah": // Changed "error" to "bermasalah"
+        return <Badge variant="destructive">Bermasalah</Badge>
       default:
         return <Badge variant="secondary">Unknown</Badge>
     }
@@ -117,7 +117,7 @@ export function TPSTable({ data, candidates }: TPSTableProps) {
               <SelectItem value="completed">Selesai</SelectItem>
               <SelectItem value="processing">Proses</SelectItem>
               <SelectItem value="pending">Menunggu</SelectItem>
-              <SelectItem value="error">Error</SelectItem>
+              <SelectItem value="bermasalah">Bermasalah</SelectItem> {/* Changed "error" to "bermasalah" */}
             </SelectContent>
           </Select>
         </div>

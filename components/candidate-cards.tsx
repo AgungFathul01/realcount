@@ -20,7 +20,9 @@ export function CandidateCards({ candidates, totalVotes }: CandidateCardsProps) 
   const sortedCandidates = [...candidates].sort((a, b) => b.votes - a.votes)
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+      {" "}
+      {/* Adjusted grid columns */}
       {sortedCandidates.map((candidate, index) => {
         const percentage = totalVotes > 0 ? (candidate.votes / totalVotes) * 100 : 0
         const isLeading = index === 0

@@ -6,18 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table" // Import Table components
 import {
   MessageSquare,
   Phone,
@@ -32,7 +21,6 @@ import {
   Activity,
   TrendingUp,
 } from "lucide-react"
-import { toast } from "sonner"
 
 interface WhatsAppMessage {
   id: string
@@ -41,7 +29,7 @@ interface WhatsAppMessage {
   tpsId: number
   message: string
   timestamp: Date
-  status: "received" | "processing" | "completed" | "error"
+  status: "received" | "processing" | "completed" | "bermasalah"
   photoUrl?: string
 }
 
@@ -69,140 +57,45 @@ interface MonitoringTabProps {
   pendingTPS: number
   errorTPS: number
   tpsData: any[]
+  messages: WhatsAppMessage[]
+  processingQueue: PhotoProcessing[]
+  completedProcessing: PhotoProcessing[]
+  handleConfirmPhoto: (id: string) => void
+  handleEditPhoto: (photo: PhotoProcessing) => void
+  handleViewPhoto: (photo: PhotoProcessing) => void
 }
 
-export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTPS, tpsData }: MonitoringTabProps) {
-  const [messages, setMessages] = useState<WhatsAppMessage[]>([])
-  const [processingQueue, setProcessingQueue] = useState<PhotoProcessing[]>([])
-  const [completedProcessing, setCompletedProcessing] = useState<PhotoProcessing[]>([])
+export function MonitoringTab({
+  completedTPS,
+  processingTPS,
+  pendingTPS,
+  errorTPS,
+  tpsData,
+  messages,
+  processingQueue,
+  completedProcessing,
+  handleConfirmPhoto,
+  handleEditPhoto,
+  handleViewPhoto,
+}: MonitoringTabProps) {
   const [isConnected, setIsConnected] = useState(true)
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const [editingPhoto, setEditingPhoto] = useState<PhotoProcessing | null>(null)
-  const [viewingPhoto, setViewingPhoto] = useState<PhotoProcessing | null>(null)
-
-  // Generate dummy photo processing data
-  const generateDummyPhoto = (): PhotoProcessing => {
-    const tpsId = Math.floor(Math.random() * 400) + 1
-    const votes = {
-      candidate1: Math.floor(Math.random() * 100) + 20,
-      candidate2: Math.floor(Math.random() * 100) + 20,
-      candidate3: Math.floor(Math.random() * 100) + 20,
-      candidate4: Math.floor(Math.random() * 100) + 20,
-      candidate5: Math.floor(Math.random() * 100) + 20,
-    }
-    const totalVotes = Object.values(votes).reduce((sum, v) => sum + v, 0)
-
-    return {
-      id: Date.now().toString() + Math.random(),
-      tpsId,
-      photoUrl: `/placeholder.svg?height=400&width=600&text=Form+C1+TPS+${tpsId.toString().padStart(3, "0")}+Total:${totalVotes}`,
-      status: "processing",
-      confidence: Math.random() * 0.3 + 0.7,
-      extractedData: { ...votes, totalVotes },
-      timestamp: new Date(),
-    }
-  }
-
-  // Simulate incoming WhatsApp messages
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        const newMessage: WhatsAppMessage = {
-          id: Date.now().toString(),
-          phone: `+6281${Math.floor(Math.random() * 100000000)
-            .toString()
-            .padStart(8, "0")}`,
-          supervisorName: `PJ-${Math.floor(Math.random() * 400) + 1}`,
-          tpsId: Math.floor(Math.random() * 400) + 1,
-          message: "Foto C1 TPS telah dikirim",
-          timestamp: new Date(),
-          status: "received",
-          photoUrl: `/placeholder.svg?height=200&width=300&text=C1+Form+TPS+${Math.floor(Math.random() * 400) + 1}`,
+    const connectWebSocket = () => {
+      setIsConnected(true)
+      const interval = setInterval(() => {
+        if (Math.random() > 0.95) {
+          setIsConnected(false)
+          setTimeout(() => {
+            setIsConnected(true)
+          }, 3000)
         }
-
-        setMessages((prev) => [newMessage, ...prev.slice(0, 9)])
-
-        setTimeout(() => {
-          setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "processing" } : msg)))
-        }, 2000)
-
-        setTimeout(() => {
-          setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "completed" } : msg)))
-        }, 5000)
-      }
-    }, 8000)
-
-    return () => clearInterval(interval)
-  }, [])
-
-  // Simulate photo processing
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.6) {
-        const newPhoto = generateDummyPhoto()
-        setProcessingQueue((prev) => [newPhoto, ...prev.slice(0, 2)])
-
-        setTimeout(
-          () => {
-            setProcessingQueue((prev) => prev.filter((p) => p.id !== newPhoto.id))
-            const processedPhoto = {
-              ...newPhoto,
-              status: newPhoto.confidence > 0.9 ? "completed" : "needs_review",
-            } as PhotoProcessing
-            setCompletedProcessing((prev) => [processedPhoto, ...prev.slice(0, 4)])
-          },
-          3000 + Math.random() * 2000,
-        )
-      }
-    }, 10000)
-
-    return () => clearInterval(interval)
-  }, [])
-
-  const handleConfirm = (id: string) => {
-    setCompletedProcessing((prev) =>
-      prev.map((photo) => (photo.id === id ? { ...photo, status: "confirmed", reviewedBy: "Admin" } : photo)),
-    )
-    toast.success("Foto C1 berhasil dikonfirmasi.")
-  }
-
-  const handleEdit = (photo: PhotoProcessing) => {
-    setEditingPhoto({ ...photo }) // Create a copy to edit
-    setIsEditModalOpen(true)
-  }
-
-  const handleSaveEdit = () => {
-    if (editingPhoto) {
-      // Recalculate totalVotes based on edited candidate votes
-      const updatedExtractedData = {
-        ...editingPhoto.extractedData,
-        totalVotes:
-          editingPhoto.extractedData.candidate1 +
-          editingPhoto.extractedData.candidate2 +
-          editingPhoto.extractedData.candidate3 +
-          editingPhoto.extractedData.candidate4 +
-          editingPhoto.extractedData.candidate5,
-      }
-
-      setCompletedProcessing((prev) =>
-        prev.map((photo) =>
-          photo.id === editingPhoto.id
-            ? { ...editingPhoto, extractedData: updatedExtractedData, reviewedBy: "Admin" } // Mark as reviewed
-            : photo,
-        ),
-      )
-      toast.success("Data foto berhasil diperbarui.")
-      setIsEditModalOpen(false)
-      setEditingPhoto(null)
+      }, 5000)
+      return () => clearInterval(interval)
     }
-  }
-
-  const handleView = (photo: PhotoProcessing) => {
-    setViewingPhoto(photo)
-    setIsViewModalOpen(true)
-  }
+    const cleanup = connectWebSocket()
+    return cleanup
+  }, [])
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -212,7 +105,7 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
         return <Bot className="h-4 w-4 text-yellow-600 animate-spin" />
       case "completed":
         return <CheckCircle className="h-4 w-4 text-green-600" />
-      case "error":
+      case "bermasalah":
         return <AlertTriangle className="h-4 w-4 text-red-600" />
       default:
         return <Clock className="h-4 w-4 text-gray-400" />
@@ -227,8 +120,8 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
         return <Badge className="bg-yellow-100 text-yellow-800">Proses</Badge>
       case "completed":
         return <Badge className="bg-green-100 text-green-800">Selesai</Badge>
-      case "error":
-        return <Badge variant="destructive">Error</Badge>
+      case "bermasalah":
+        return <Badge variant="destructive">Bermasalah</Badge>
       default:
         return <Badge variant="secondary">Unknown</Badge>
     }
@@ -244,12 +137,13 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
         return <Badge className="bg-yellow-100 text-yellow-800">Perlu Review ({Math.round(confidence * 100)}%)</Badge>
       case "confirmed":
         return <Badge className="bg-purple-100 text-purple-800">Dikonfirmasi</Badge>
+      case "bermasalah":
+        return <Badge variant="destructive">Bermasalah</Badge>
       default:
         return <Badge variant="secondary">Unknown</Badge>
     }
   }
 
-  // Calculate TPS that need processing
   const tpsNeedProcessing = pendingTPS + processingTPS + errorTPS
 
   return (
@@ -332,7 +226,7 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
             <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="text-sm">Error</span>
+                <span className="text-sm">Bermasalah</span>
               </div>
               <Badge variant="destructive">{errorTPS}</Badge>
             </div>
@@ -401,7 +295,7 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
           </CardContent>
         </Card>
 
-        {/* AI Photo Processor */}
+        {/* AI Photo Processor - Card View (original) */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -432,7 +326,7 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
               </div>
             )}
 
-            {/* Completed Processing */}
+            {/* Completed Processing - Card List */}
             <div>
               <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                 <CheckCircle className="h-4 w-4" />
@@ -466,14 +360,18 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleEdit(photo)}
+                            onClick={() => handleEditPhoto(photo)}
                             className="text-xs px-2 py-1 bg-transparent"
                           >
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
                           </Button>
                           {photo.status === "needs_review" && (
-                            <Button size="sm" onClick={() => handleConfirm(photo.id)} className="text-xs px-2 py-1">
+                            <Button
+                              size="sm"
+                              onClick={() => handleConfirmPhoto(photo.id)}
+                              className="text-xs px-2 py-1"
+                            >
                               <CheckCircle className="h-3 w-3 mr-1" />
                               OK
                             </Button>
@@ -481,7 +379,7 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleView(photo)}
+                            onClick={() => handleViewPhoto(photo)}
                             className="text-xs px-2 py-1 bg-transparent"
                           >
                             <Eye className="h-3 w-3 mr-1" />
@@ -502,6 +400,95 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Photo Processor - Table View (New Card) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            Detail Hasil Proses AI (Tabel)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[400px] rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>TPS</TableHead>
+                  <TableHead>C1</TableHead>
+                  <TableHead>C2</TableHead>
+                  <TableHead>C3</TableHead>
+                  <TableHead>C4</TableHead>
+                  <TableHead>C5</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Confidence</TableHead>
+                  <TableHead>Waktu</TableHead>
+                  <TableHead>Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {completedProcessing.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={11} className="text-center text-gray-500 py-4">
+                      <Brain className="h-6 w-6 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Belum ada foto yang diproses untuk ditampilkan dalam tabel.</p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  completedProcessing.map((photo) => (
+                    <TableRow key={photo.id}>
+                      <TableCell className="font-medium">TPS {photo.tpsId.toString().padStart(3, "0")}</TableCell>
+                      <TableCell>{photo.extractedData.candidate1}</TableCell>
+                      <TableCell>{photo.extractedData.candidate2}</TableCell>
+                      <TableCell>{photo.extractedData.candidate3}</TableCell>
+                      <TableCell>{photo.extractedData.candidate4}</TableCell>
+                      <TableCell>{photo.extractedData.candidate5}</TableCell>
+                      <TableCell className="font-medium">{photo.extractedData.totalVotes}</TableCell>
+                      <TableCell>{getPhotoStatusBadge(photo.status, photo.confidence)}</TableCell>
+                      <TableCell>{(photo.confidence * 100).toFixed(1)}%</TableCell>
+                      <TableCell className="text-xs">
+                        {photo.timestamp.toLocaleTimeString("id-ID")}
+                        <br />
+                        {photo.timestamp.toLocaleDateString("id-ID")}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditPhoto(photo)}
+                            className="text-xs px-2 py-1 bg-transparent"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          {photo.status === "needs_review" && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleConfirmPhoto(photo.id)}
+                              className="text-xs px-2 py-1"
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewPhoto(photo)}
+                            className="text-xs px-2 py-1 bg-transparent"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </CardContent>
+      </Card>
 
       {/* Recent Activity */}
       <Card>
@@ -531,171 +518,6 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
           </div>
         </CardContent>
       </Card>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Data Foto C1 TPS {editingPhoto?.tpsId.toString().padStart(3, "0")}</DialogTitle>
-            <DialogDescription>Perbarui data yang diekstrak dari foto C1.</DialogDescription>
-          </DialogHeader>
-          {editingPhoto && (
-            <div className="grid gap-4 py-4">
-              {Object.keys(editingPhoto.extractedData)
-                .filter((key) => key.startsWith("candidate"))
-                .map((key) => (
-                  <div className="grid grid-cols-4 items-center gap-4" key={key}>
-                    <Label htmlFor={key} className="text-right">
-                      {key.replace("candidate", "Calon ")}
-                    </Label>
-                    <Input
-                      id={key}
-                      type="number"
-                      value={editingPhoto.extractedData[key as keyof typeof editingPhoto.extractedData]}
-                      onChange={(e) =>
-                        setEditingPhoto((prev) => {
-                          if (!prev) return null
-                          const newExtractedData = {
-                            ...prev.extractedData,
-                            [key]: Number.parseInt(e.target.value) || 0,
-                          }
-                          // Update totalVotes dynamically
-                          newExtractedData.totalVotes = Object.values(newExtractedData)
-                            .filter((val, idx, arr) => typeof val === "number" && idx < arr.length - 1) // Exclude totalVotes itself
-                            .reduce((sum, val) => sum + (val as number), 0)
-                          return { ...prev, extractedData: newExtractedData }
-                        })
-                      }
-                      className="col-span-3"
-                    />
-                  </div>
-                ))}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="totalVotes" className="text-right">
-                  Total Suara
-                </Label>
-                <Input
-                  id="totalVotes"
-                  type="number"
-                  value={editingPhoto.extractedData.totalVotes}
-                  readOnly // Make total votes read-only
-                  className="col-span-3 bg-gray-100"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="confidence" className="text-right">
-                  Confidence
-                </Label>
-                <Input
-                  id="confidence"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="1"
-                  value={editingPhoto.confidence}
-                  onChange={(e) =>
-                    setEditingPhoto((prev) =>
-                      prev ? { ...prev, confidence: Number.parseFloat(e.target.value) || 0 } : null,
-                    )
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="text-right">
-                  Status
-                </Label>
-                <Select
-                  value={editingPhoto.status}
-                  onValueChange={(value: "processing" | "completed" | "needs_review" | "confirmed") =>
-                    setEditingPhoto((prev) => (prev ? { ...prev, status: value } : null))
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Pilih Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="processing">Memproses</SelectItem>
-                    <SelectItem value="completed">Selesai</SelectItem>
-                    <SelectItem value="needs_review">Perlu Review</SelectItem>
-                    <SelectItem value="confirmed">Dikonfirmasi</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={handleSaveEdit}>Simpan Perubahan</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Dialog */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Detail Foto C1 TPS {viewingPhoto?.tpsId.toString().padStart(3, "0")}</DialogTitle>
-            <DialogDescription>Informasi lengkap dan pratinjau foto C1.</DialogDescription>
-          </DialogHeader>
-          {viewingPhoto && (
-            <div className="grid gap-4 py-4">
-              <div className="flex justify-center">
-                <img
-                  src={viewingPhoto.photoUrl || "/placeholder.svg"}
-                  alt={`Form C1 TPS ${viewingPhoto.tpsId}`}
-                  className="w-full max-h-80 object-contain rounded border"
-                />
-              </div>
-              <Separator />
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">TPS ID</Label>
-                  <p className="text-sm text-gray-600">{viewingPhoto.tpsId.toString().padStart(3, "0")}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Status</Label>
-                  <p className="text-sm text-gray-600">
-                    {getPhotoStatusBadge(viewingPhoto.status, viewingPhoto.confidence)}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Confidence AI</Label>
-                  <p className="text-sm text-gray-600">{(viewingPhoto.confidence * 100).toFixed(1)}%</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Waktu Proses</Label>
-                  <p className="text-sm text-gray-600">{viewingPhoto.timestamp.toLocaleString("id-ID")}</p>
-                </div>
-                {viewingPhoto.reviewedBy && (
-                  <div>
-                    <Label className="text-sm font-medium">Dikonfirmasi Oleh</Label>
-                    <p className="text-sm text-gray-600">{viewingPhoto.reviewedBy}</p>
-                  </div>
-                )}
-              </div>
-              <Separator />
-              <div>
-                <h3 className="text-md font-medium mb-2">Data Terekstrak:</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
-                  {Object.entries(viewingPhoto.extractedData).map(([key, value]) => (
-                    <div key={key}>
-                      <span className="font-medium">
-                        {key.replace("candidate", "Calon ").replace("totalVotes", "Total Suara")}:
-                      </span>{" "}
-                      {value}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewModalOpen(false)}>
-              Tutup
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

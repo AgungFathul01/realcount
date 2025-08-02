@@ -46,8 +46,8 @@ export function TPSDetailDialog({ tps, candidates, isOpen, onClose }: TPSDetailD
         return <Badge className="bg-blue-100 text-blue-800">Proses</Badge>
       case "pending":
         return <Badge className="bg-yellow-100 text-yellow-800">Menunggu</Badge>
-      case "error":
-        return <Badge variant="destructive">Error</Badge>
+      case "bermasalah": // Changed "error" to "bermasalah"
+        return <Badge variant="destructive">Bermasalah</Badge>
       default:
         return <Badge variant="secondary">Unknown</Badge>
     }
@@ -61,7 +61,7 @@ export function TPSDetailDialog({ tps, candidates, isOpen, onClose }: TPSDetailD
         return <BarChart3 className="h-5 w-5 text-blue-600 animate-pulse" />
       case "pending":
         return <AlertTriangle className="h-5 w-5 text-yellow-600" />
-      case "error":
+      case "bermasalah": // Changed "error" to "bermasalah"
         return <AlertTriangle className="h-5 w-5 text-red-600" />
       default:
         return <AlertTriangle className="h-5 w-5 text-gray-400" />
@@ -70,7 +70,7 @@ export function TPSDetailDialog({ tps, candidates, isOpen, onClose }: TPSDetailD
 
   // Prepare chart data
   const chartData = tps.votes.map((vote) => {
-    const candidate = candidates.find((c) => c.candidateId === vote.candidateId)
+    const candidate = candidates.find((c) => c.id === vote.candidateId) // Changed candidateId to id
     return {
       name: candidate?.name || `Calon ${vote.candidateId}`,
       votes: vote.count,
