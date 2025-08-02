@@ -10,6 +10,7 @@ import { CandidateCards } from "@/components/candidate-cards"
 import { RealtimeProvider } from "@/components/realtime-provider"
 import { EnhancedResults } from "@/components/enhanced-results"
 import { MonitoringTab } from "@/components/monitoring-tab"
+import { EnhancedCharts } from "@/components/enhanced-charts" // Import EnhancedCharts
 
 // Mock data for candidates
 const candidates = [
@@ -211,6 +212,7 @@ export default function Dashboard() {
                 completedTPS={completedTPS}
                 totalTPS={400}
               />
+              <EnhancedCharts candidates={candidateVotes} totalVotes={totalVotes} /> {/* Added EnhancedCharts */}
             </TabsContent>
 
             <TabsContent value="tps">
