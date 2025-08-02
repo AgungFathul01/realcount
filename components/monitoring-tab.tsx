@@ -7,6 +7,18 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import {
   MessageSquare,
   Phone,
   CheckCircle,
@@ -20,6 +32,7 @@ import {
   Activity,
   TrendingUp,
 } from "lucide-react"
+import { toast } from "sonner"
 
 interface WhatsAppMessage {
   id: string
@@ -63,6 +76,11 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
   const [processingQueue, setProcessingQueue] = useState<PhotoProcessing[]>([])
   const [completedProcessing, setCompletedProcessing] = useState<PhotoProcessing[]>([])
   const [isConnected, setIsConnected] = useState(true)
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [editingPhoto, setEditingPhoto] = useState<PhotoProcessing | null>(null)
+  const [viewingPhoto, setViewingPhoto] = useState<PhotoProcessing | null>(null)
 
   // Generate dummy photo processing data
   const generateDummyPhoto = (): PhotoProcessing => {
@@ -147,6 +165,43 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
     setCompletedProcessing((prev) =>
       prev.map((photo) => (photo.id === id ? { ...photo, status: "confirmed", reviewedBy: "Admin" } : photo)),
     )
+    toast.success("Foto C1 berhasil dikonfirmasi.")
+  }
+
+  const handleEdit = (photo: PhotoProcessing) => {
+    setEditingPhoto({ ...photo }) // Create a copy to edit
+    setIsEditModalOpen(true)
+  }
+
+  const handleSaveEdit = () => {
+    if (editingPhoto) {
+      // Recalculate totalVotes based on edited candidate votes
+      const updatedExtractedData = {
+        ...editingPhoto.extractedData,
+        totalVotes:
+          editingPhoto.extractedData.candidate1 +
+          editingPhoto.extractedData.candidate2 +
+          editingPhoto.extractedData.candidate3 +
+          editingPhoto.extractedData.candidate4 +
+          editingPhoto.extractedData.candidate5,
+      }
+
+      setCompletedProcessing((prev) =>
+        prev.map((photo) =>
+          photo.id === editingPhoto.id
+            ? { ...editingPhoto, extractedData: updatedExtractedData, reviewedBy: "Admin" } // Mark as reviewed
+            : photo,
+        ),
+      )
+      toast.success("Data foto berhasil diperbarui.")
+      setIsEditModalOpen(false)
+      setEditingPhoto(null)
+    }
+  }
+
+  const handleView = (photo: PhotoProcessing) => {
+    setViewingPhoto(photo)
+    setIsViewModalOpen(true)
   }
 
   const getStatusIcon = (status: string) => {
@@ -408,7 +463,12 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
                         </div>
 
                         <div className="flex gap-1">
-                          <Button size="sm" variant="outline" className="text-xs px-2 py-1 bg-transparent">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(photo)}
+                            className="text-xs px-2 py-1 bg-transparent"
+                          >
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
                           </Button>
@@ -418,7 +478,12 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
                               OK
                             </Button>
                           )}
-                          <Button size="sm" variant="outline" className="text-xs px-2 py-1 bg-transparent">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleView(photo)}
+                            className="text-xs px-2 py-1 bg-transparent"
+                          >
                             <Eye className="h-3 w-3 mr-1" />
                             Lihat
                           </Button>
@@ -466,6 +531,171 @@ export function MonitoringTab({ completedTPS, processingTPS, pendingTPS, errorTP
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Data Foto C1 TPS {editingPhoto?.tpsId.toString().padStart(3, "0")}</DialogTitle>
+            <DialogDescription>Perbarui data yang diekstrak dari foto C1.</DialogDescription>
+          </DialogHeader>
+          {editingPhoto && (
+            <div className="grid gap-4 py-4">
+              {Object.keys(editingPhoto.extractedData)
+                .filter((key) => key.startsWith("candidate"))
+                .map((key) => (
+                  <div className="grid grid-cols-4 items-center gap-4" key={key}>
+                    <Label htmlFor={key} className="text-right">
+                      {key.replace("candidate", "Calon ")}
+                    </Label>
+                    <Input
+                      id={key}
+                      type="number"
+                      value={editingPhoto.extractedData[key as keyof typeof editingPhoto.extractedData]}
+                      onChange={(e) =>
+                        setEditingPhoto((prev) => {
+                          if (!prev) return null
+                          const newExtractedData = {
+                            ...prev.extractedData,
+                            [key]: Number.parseInt(e.target.value) || 0,
+                          }
+                          // Update totalVotes dynamically
+                          newExtractedData.totalVotes = Object.values(newExtractedData)
+                            .filter((val, idx, arr) => typeof val === "number" && idx < arr.length - 1) // Exclude totalVotes itself
+                            .reduce((sum, val) => sum + (val as number), 0)
+                          return { ...prev, extractedData: newExtractedData }
+                        })
+                      }
+                      className="col-span-3"
+                    />
+                  </div>
+                ))}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="totalVotes" className="text-right">
+                  Total Suara
+                </Label>
+                <Input
+                  id="totalVotes"
+                  type="number"
+                  value={editingPhoto.extractedData.totalVotes}
+                  readOnly // Make total votes read-only
+                  className="col-span-3 bg-gray-100"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="confidence" className="text-right">
+                  Confidence
+                </Label>
+                <Input
+                  id="confidence"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="1"
+                  value={editingPhoto.confidence}
+                  onChange={(e) =>
+                    setEditingPhoto((prev) =>
+                      prev ? { ...prev, confidence: Number.parseFloat(e.target.value) || 0 } : null,
+                    )
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">
+                  Status
+                </Label>
+                <Select
+                  value={editingPhoto.status}
+                  onValueChange={(value: "processing" | "completed" | "needs_review" | "confirmed") =>
+                    setEditingPhoto((prev) => (prev ? { ...prev, status: value } : null))
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Pilih Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="processing">Memproses</SelectItem>
+                    <SelectItem value="completed">Selesai</SelectItem>
+                    <SelectItem value="needs_review">Perlu Review</SelectItem>
+                    <SelectItem value="confirmed">Dikonfirmasi</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={handleSaveEdit}>Simpan Perubahan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Dialog */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detail Foto C1 TPS {viewingPhoto?.tpsId.toString().padStart(3, "0")}</DialogTitle>
+            <DialogDescription>Informasi lengkap dan pratinjau foto C1.</DialogDescription>
+          </DialogHeader>
+          {viewingPhoto && (
+            <div className="grid gap-4 py-4">
+              <div className="flex justify-center">
+                <img
+                  src={viewingPhoto.photoUrl || "/placeholder.svg"}
+                  alt={`Form C1 TPS ${viewingPhoto.tpsId}`}
+                  className="w-full max-h-80 object-contain rounded border"
+                />
+              </div>
+              <Separator />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">TPS ID</Label>
+                  <p className="text-sm text-gray-600">{viewingPhoto.tpsId.toString().padStart(3, "0")}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <p className="text-sm text-gray-600">
+                    {getPhotoStatusBadge(viewingPhoto.status, viewingPhoto.confidence)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Confidence AI</Label>
+                  <p className="text-sm text-gray-600">{(viewingPhoto.confidence * 100).toFixed(1)}%</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Waktu Proses</Label>
+                  <p className="text-sm text-gray-600">{viewingPhoto.timestamp.toLocaleString("id-ID")}</p>
+                </div>
+                {viewingPhoto.reviewedBy && (
+                  <div>
+                    <Label className="text-sm font-medium">Dikonfirmasi Oleh</Label>
+                    <p className="text-sm text-gray-600">{viewingPhoto.reviewedBy}</p>
+                  </div>
+                )}
+              </div>
+              <Separator />
+              <div>
+                <h3 className="text-md font-medium mb-2">Data Terekstrak:</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+                  {Object.entries(viewingPhoto.extractedData).map(([key, value]) => (
+                    <div key={key}>
+                      <span className="font-medium">
+                        {key.replace("candidate", "Calon ").replace("totalVotes", "Total Suara")}:
+                      </span>{" "}
+                      {value}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewModalOpen(false)}>
+              Tutup
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
