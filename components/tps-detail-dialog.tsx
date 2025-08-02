@@ -80,7 +80,7 @@ export function TPSDetailDialog({ tps, candidates, isOpen, onClose }: TPSDetailD
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[90vw] md:w-[70vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {getStatusIcon(tps.status)}
@@ -89,7 +89,7 @@ export function TPSDetailDialog({ tps, candidates, isOpen, onClose }: TPSDetailD
           <DialogDescription>Informasi lengkap dan hasil perhitungan suara TPS</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-6">
           {/* TPS Information */}
           <Card>
             <CardHeader>

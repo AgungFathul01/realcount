@@ -124,7 +124,7 @@ export function TPSTable({ data, candidates }: TPSTableProps) {
       </CardHeader>
 
       <CardContent>
-        <div className="rounded-md border">
+        <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -165,7 +165,7 @@ export function TPSTable({ data, candidates }: TPSTableProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleViewDetail(tps)}>
+                      <Button variant="outline" size="default" onClick={() => handleViewDetail(tps)}>
                         <Eye className="h-4 w-4 mr-1" />
                         Detail
                       </Button>

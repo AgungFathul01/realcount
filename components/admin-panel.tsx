@@ -141,7 +141,7 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
                   <DialogDescription>Tambahkan penanggung jawab baru untuk TPS tertentu</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">
                       Nama
                     </Label>
@@ -153,7 +153,7 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
                       placeholder="Nama lengkap"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-4">
                     <Label htmlFor="phone" className="text-right">
                       No. HP
                     </Label>
@@ -165,7 +165,7 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
                       placeholder="+62812xxxxxxxx"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-4">
                     <Label htmlFor="tps" className="text-right">
                       TPS
                     </Label>
@@ -182,7 +182,7 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-4">
                     <Label htmlFor="location" className="text-right">
                       Lokasi
                     </Label>
@@ -277,7 +277,7 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
                             </DialogHeader>
                             {editingTPS && (
                               <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-4">
                                   <Label htmlFor="edit-name" className="text-right">
                                     Nama
                                   </Label>
@@ -290,7 +290,7 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
                                     className="col-span-3"
                                   />
                                 </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-4">
                                   <Label htmlFor="edit-phone" className="text-right">
                                     No. HP
                                   </Label>
@@ -303,7 +303,7 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
                                     className="col-span-3"
                                   />
                                 </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center gap-4">
                                   <Label htmlFor="edit-location" className="text-right">
                                     Lokasi
                                   </Label>
@@ -372,7 +372,7 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
           </DialogHeader>
           {selectedTPS && (
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium">TPS</Label>
                   <p className="text-sm text-gray-600">{selectedTPS.name}</p>
@@ -382,7 +382,7 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
                   <div className="mt-1">{getStatusBadge(selectedTPS.status)}</div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium">Penanggung Jawab</Label>
                   <p className="text-sm text-gray-600">{selectedTPS.supervisor}</p>
@@ -396,7 +396,7 @@ export function AdminPanel({ tpsData }: AdminPanelProps) {
                 <Label className="text-sm font-medium">Lokasi</Label>
                 <p className="text-sm text-gray-600">{selectedTPS.location}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium">Total Suara</Label>
                   <p className="text-sm text-gray-600">
