@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Camera, CheckCircle, Clock, AlertTriangle, MapPin, Eye, Settings, BarChart } from "lucide-react"
+import { Camera, CheckCircle, Clock, AlertTriangle, MapPin, Eye, Settings, BarChart } from 'lucide-react'
 import { TPSTable } from "@/components/tps-table"
 import { AdminPanel } from "@/components/admin-panel"
 import { CandidateCards } from "@/components/candidate-cards"
@@ -40,22 +40,48 @@ const candidates = [
 
 // Mock TPS data
 const generateTPSData = () => {
-  const statuses = ["completed", "processing", "pending", "bermasalah"] // Changed "error" to "bermasalah"
-  return Array.from({ length: 400 }, (_, i) => ({
-    id: i + 1,
-    name: `TPS ${String(i + 1).padStart(3, "0")}`,
-    location: `Kelurahan ${Math.floor(i / 10) + 1}`,
-    supervisor: `PJ-${String(i + 1).padStart(3, "0")}`,
-    phone: `+62812${String(Math.floor(Math.random() * 10000000)).padStart(7, "0")}`,
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-    totalVotes: Math.floor(Math.random() * 500) + 200,
-    photoUploaded: Math.random() > 0.3,
-    lastUpdate: new Date(Date.now() - Math.random() * 3600000).toISOString(),
-    votes: candidates.map((c) => ({
-      candidateId: c.id,
-      count: Math.floor(Math.random() * 100) + 20,
-    })),
-  }))
+  const statuses = ["completed", "processing", "pending", "bermasalah"]
+  return Array.from({ length: 400 }, (_, i) => {
+    const totalDPT = Math.floor(Math.random() * 50) + 200; // DPT per TPS between 200-250
+    const votersPresent = Math.floor(Math.random() * (totalDPT * 0.9 - totalDPT * 0.5 + 1)) + Math.floor(totalDPT * 0.5); // Voters present between 50-90% of DPT
+    const votersAbsent = totalDPT - votersPresent;
+    const totalInvalidVotes = Math.floor(Math.random() * (votersPresent * 0.1)) + 1; // 1-10% of votersPresent as invalid votes
+    const totalValidVotes = votersPresent - totalInvalidVotes; // Total valid votes must be <= votersPresent - invalid votes
+
+    // Distribute totalValidVotes among candidates
+    let remainingVotes = totalValidVotes;
+    const candidateVotes = candidates.map((c) => {
+      let count = Math.floor(Math.random() * (remainingVotes / (candidates.length - c.id + 1))); // Distribute somewhat evenly
+      if (c.id === candidates.length) { // Last candidate gets remaining votes
+        count = remainingVotes;
+      }
+      remainingVotes -= count;
+      return {
+        candidateId: c.id,
+        count: count,
+      };
+    });
+
+    // Ensure totalVotes is exactly totalValidVotes after distribution
+    const finalTotalVotes = candidateVotes.reduce((sum, v) => sum + v.count, 0);
+
+    return {
+      id: i + 1,
+      name: `TPS ${String(i + 1).padStart(3, "0")}`,
+      location: `Kelurahan ${Math.floor(i / 10) + 1}`,
+      supervisor: `PJ-${String(i + 1).padStart(3, "0")}`,
+      phone: `+62812${String(Math.floor(Math.random() * 10000000)).padStart(7, "0")}`,
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+      totalVotes: finalTotalVotes, // This is the sum of valid votes for candidates
+      photoUploaded: Math.random() > 0.3,
+      lastUpdate: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+      votes: candidateVotes,
+      totalInvalidVotes: totalInvalidVotes,
+      votersPresent: votersPresent,
+      votersAbsent: votersAbsent,
+      totalDPT: totalDPT,
+    }
+  })
 }
 
 interface WhatsAppMessage {
@@ -65,7 +91,7 @@ interface WhatsAppMessage {
   tpsId: number
   message: string
   timestamp: Date
-  status: "received" | "processing" | "completed" | "bermasalah" // Changed "error" to "bermasalah"
+  status: "received" | "processing" | "completed" | "bermasalah"
   photoUrl?: string
 }
 
@@ -292,6 +318,22 @@ export default function Dashboard() {
   const totalVotes = candidateVotes.reduce((sum, c) => sum + c.votes, 0)
   const progressPercentage = (completedTPS / 400) * 100
 
+  // Calculate total valid votes (already totalVotes)
+  const totalValidVotes = totalVotes;
+
+  // Sum up total invalid votes from all TPS
+  const totalInvalidVotes = tpsData.reduce((sum, tps) => sum + tps.totalInvalidVotes, 0);
+
+  // Sum up total DPT from all TPS
+  const totalDPT = tpsData.reduce((sum, tps) => sum + tps.totalDPT, 0);
+
+  // Sum up total voters present from all TPS
+  const votersPresent = tpsData.reduce((sum, tps) => sum + tps.votersPresent, 0);
+
+  // Sum up total voters absent from all TPS
+  const votersAbsent = tpsData.reduce((sum, tps) => sum + tps.votersAbsent, 0);
+
+
   return (
     <RealtimeProvider>
       <div className="min-h-screen bg-gray-50 p-4">
@@ -409,6 +451,10 @@ export default function Dashboard() {
                 totalVotes={totalVotes}
                 completedTPS={completedTPS}
                 totalTPS={400}
+                totalInvalidVotes={totalInvalidVotes} // New prop
+                votersPresent={votersPresent} // New prop
+                votersAbsent={votersAbsent} // New prop
+                totalDPT={totalDPT} // New prop
               />
               <EnhancedCharts candidates={candidateVotes} totalVotes={totalVotes} />
             </TabsContent>

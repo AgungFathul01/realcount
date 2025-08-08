@@ -7,20 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  MessageSquare,
-  Phone,
-  CheckCircle,
-  Clock,
-  AlertTriangle,
-  Bot,
-  Camera,
-  Brain,
-  Eye,
-  Edit,
-  Activity,
-  TrendingUp,
-} from "lucide-react"
+import { MessageSquare, Phone, CheckCircle, Clock, AlertTriangle, Bot, Camera, Brain, Eye, Edit, Activity, TrendingUp } from 'lucide-react'
 
 interface WhatsAppMessage {
   id: string
@@ -348,11 +335,11 @@ export function MonitoringTab({
                         </div>
 
                         <div className="grid grid-cols-3 gap-2 text-xs mb-2">
-                          <div>C1: {photo.extractedData.candidate1}</div>
-                          <div>C2: {photo.extractedData.candidate2}</div>
-                          <div>C3: {photo.extractedData.candidate3}</div>
-                          <div>C4: {photo.extractedData.candidate4}</div>
-                          <div>C5: {photo.extractedData.candidate5}</div>
+                          <div>Paslon 1: {photo.extractedData.candidate1}</div>
+                          <div>Paslon 2: {photo.extractedData.candidate2}</div>
+                          <div>Paslon 3: {photo.extractedData.candidate3}</div>
+                          <div>Paslon 4: {photo.extractedData.candidate4}</div>
+                          <div>Paslon 5: {photo.extractedData.candidate5}</div>
                           <div className="font-medium">Total: {photo.extractedData.totalVotes}</div>
                         </div>
 
@@ -416,11 +403,11 @@ export function MonitoringTab({
               <TableHeader>
                 <TableRow>
                   <TableHead>TPS</TableHead>
-                  <TableHead>C1</TableHead>
-                  <TableHead>C2</TableHead>
-                  <TableHead>C3</TableHead>
-                  <TableHead>C4</TableHead>
-                  <TableHead>C5</TableHead>
+                  <TableHead>Paslon 1</TableHead>
+                  <TableHead>Paslon 2</TableHead>
+                  <TableHead>Paslon 3</TableHead>
+                  <TableHead>Paslon 4</TableHead>
+                  <TableHead>Paslon 5</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Confidence</TableHead>

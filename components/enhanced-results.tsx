@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
-import { TrendingUp, Crown, Award, Target } from "lucide-react"
+import { TrendingUp, Crown, Award, Target, Users, XCircle, CheckCircle2, UserX } from 'lucide-react' // Added new icons
 
 interface Candidate {
   id: number
@@ -15,12 +15,25 @@ interface Candidate {
 
 interface EnhancedResultsProps {
   candidates: Candidate[]
-  totalVotes: number
+  totalVotes: number // This is total valid votes
   completedTPS: number
   totalTPS: number
+  totalInvalidVotes: number // New prop
+  votersPresent: number // New prop
+  votersAbsent: number // New prop
+  totalDPT: number // New prop
 }
 
-export function EnhancedResults({ candidates, totalVotes, completedTPS, totalTPS }: EnhancedResultsProps) {
+export function EnhancedResults({
+  candidates,
+  totalVotes,
+  completedTPS,
+  totalTPS,
+  totalInvalidVotes, // Destructure new prop
+  votersPresent, // Destructure new prop
+  votersAbsent, // Destructure new prop
+  totalDPT, // Destructure new prop
+}: EnhancedResultsProps) {
   const sortedCandidates = [...candidates].sort((a, b) => b.votes - a.votes)
 
   // Prepare data for charts
@@ -89,6 +102,55 @@ export function EnhancedResults({ candidates, totalVotes, completedTPS, totalTPS
                 {completedTPS} dari {totalTPS} TPS
               </span>
               <span>{totalTPS - completedTPS} TPS tersisa</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Additional Metrics Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Statistik Tambahan
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+              <div>
+                <div className="text-xl font-bold">{totalVotes.toLocaleString("id-ID")}</div>
+                <div className="text-sm text-gray-600">Total Suara Sah</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
+              <XCircle className="h-6 w-6 text-red-600" />
+              <div>
+                <div className="text-xl font-bold">{totalInvalidVotes.toLocaleString("id-ID")}</div>
+                <div className="text-sm text-gray-600">Total Suara Tidak Sah</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+              <Users className="h-6 w-6 text-blue-600" />
+              <div>
+                <div className="text-xl font-bold">{votersPresent.toLocaleString("id-ID")}</div>
+                <div className="text-sm text-gray-600">Pemilih Hadir</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+              <UserX className="h-6 w-6 text-yellow-600" />
+              <div>
+                <div className="text-xl font-bold">{votersAbsent.toLocaleString("id-ID")}</div>
+                <div className="text-sm text-gray-600">Pemilih Tidak Hadir</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+              <Users className="h-6 w-6 text-purple-600" />
+              <div>
+                <div className="text-xl font-bold">{totalDPT.toLocaleString("id-ID")}</div>
+                <div className="text-sm text-gray-600">Total DPT</div>
+              </div>
             </div>
           </div>
         </CardContent>

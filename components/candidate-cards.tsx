@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { TrendingUp } from "lucide-react"
+import { TrendingUp } from 'lucide-react'
 
 interface Candidate {
   id: number
@@ -39,11 +39,16 @@ export function CandidateCards({ candidates, totalVotes }: CandidateCardsProps) 
             )}
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: candidate.color }}></div>
-                <span className="text-lg font-bold">#{index + 1}</span>
+                <img
+                  src={`/placeholder.svg?height=40&width=40&query=candidate ${candidate.name}`}
+                  alt={`Foto ${candidate.name}`}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                />
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: candidate.color }}></div>
+                  <span className="text-lg font-bold">#{index + 1}</span>
+                </div>
               </div>
-              <CardTitle className="text-lg">{candidate.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">{candidate.party}</p>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">

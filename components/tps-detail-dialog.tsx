@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
-import { MapPin, Phone, User, Calendar, Camera, BarChart3, CheckCircle, AlertTriangle } from "lucide-react"
+import { MapPin, Phone, User, Calendar, Camera, BarChart3, CheckCircle, AlertTriangle, CheckCircle2, XCircle, Users, UserX } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 interface TPSData {
@@ -19,6 +19,10 @@ interface TPSData {
   photoUploaded: boolean
   lastUpdate: string
   votes: { candidateId: number; count: number }[]
+  totalInvalidVotes: number // New field
+  votersPresent: number // New field
+  votersAbsent: number // New field
+  totalDPT: number // New field
 }
 
 interface Candidate {
@@ -147,6 +151,52 @@ export function TPSDetailDialog({ tps, candidates, isOpen, onClose }: TPSDetailD
                         <Badge className="bg-red-100 text-red-800">Belum Upload</Badge>
                       )}
                     </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Voter Statistics */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Statistik Pemilih</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <div>
+                    <div className="font-medium">Total Suara Sah</div>
+                    <div className="text-sm text-gray-600">{tps.totalVotes.toLocaleString("id-ID")}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-5 w-5 text-red-600" />
+                  <div>
+                    <div className="font-medium">Total Suara Tidak Sah</div>
+                    <div className="text-sm text-gray-600">{tps.totalInvalidVotes.toLocaleString("id-ID")}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <div className="font-medium">Pemilih Hadir</div>
+                    <div className="text-sm text-gray-600">{tps.votersPresent.toLocaleString("id-ID")}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <UserX className="h-5 w-5 text-yellow-600" />
+                  <div>
+                    <div className="font-medium">Pemilih Tidak Hadir</div>
+                    <div className="text-sm text-gray-600">{tps.votersAbsent.toLocaleString("id-ID")}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-purple-600" />
+                  <div>
+                    <div className="font-medium">Total DPT</div>
+                    <div className="text-sm text-gray-600">{tps.totalDPT.toLocaleString("id-ID")}</div>
                   </div>
                 </div>
               </div>
